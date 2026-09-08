@@ -55,7 +55,17 @@ public class Main {
                                 StandardOpenOption.APPEND
                         );
                     } catch (IOException e) {
-                        System.out.println("IO exception");
+                        Path logFilePath = Path.of(migrationLogPath);
+                        String content = "failing delivery %s:%s\n".formatted(deliveryCode, e);
+                        try {
+                            Files.writeString(
+                                    logFilePath,
+                                    content,
+                                    StandardOpenOption.APPEND
+                            );
+                        } catch (IOException ex) {
+                            System.out.println("an error happended look into log file");
+                        }
                     }
 
                 }
@@ -67,8 +77,12 @@ public class Main {
     private static String[] getFileNames() {
         File receiptsFolder = new File(pathToReceiptsFolder);
         File[] receiptFiles = receiptsFolder.listFiles();
+        if (receiptFiles == null) {
+            throw new IllegalStateException("Receipts folder not found: " + pathToReceiptsFolder);
+        }
         String[] files = Arrays.stream(receiptFiles)
                 .map(f -> f.getName())
+                .filter(name -> name.lastIndexOf('.') > 0)
                 .map(name -> name.substring(0, name.lastIndexOf('.')))
                 .toArray(String[]::new);
         return files;
@@ -82,43 +96,17 @@ public class Main {
             var filter = Filters.in("deliveryCode", fileNames);
             ArrayList<Document> matchedDocuments = collection.find(filter).into(new ArrayList<>());
 
-            Map<String, String> pairs = new HashMap<>();
-            long deliveriesWithReceiptCount = 0;
-            long deliveriesWithoutReceiptCount = 0;
-            Set<String> matchedNames = new HashSet<>();
-            ArrayList<String> withReceipt = new ArrayList<>();
             HashMap<String, String> withoutReceiptUrls = new HashMap<String, String>();
 
             for (Document d : matchedDocuments) {
                 String deliveryCode = d.getString("deliveryCode");
                 String deliveryId = d.get("_id").toString();
-                matchedNames.add(deliveryCode);
                 String receiptUrl = d.getString("receiptUrl");
-                if (receiptUrl != null && !receiptUrl.trim().isEmpty()) {
-                    deliveriesWithReceiptCount++;
-                    pairs.put(deliveryCode, receiptUrl);
-                    withReceipt.add(deliveryCode);
-                } else {
-                    deliveriesWithoutReceiptCount++;
-                    pairs.put(deliveryCode, "NO_URL");
+                if (receiptUrl == null || receiptUrl.trim().isEmpty()) {
                     withoutReceiptUrls.put(deliveryId, deliveryCode);
                 }
             }
 
-            ArrayList<String> notFoundInDb = new ArrayList<>();
-            for (String fileName : fileNames) {
-                if (!matchedNames.contains(fileName)) {
-                    notFoundInDb.add(fileName);
-                }
-            }
-
-//            System.out.println("\n--- Execution Summary ---");
-//            System.out.println("FileNames count: " + fileNames.length);
-//            System.out.println("Found matching deliveries: " + matchedDocuments.size());
-//            System.out.println("Deliveries with receipt: " + deliveriesWithReceiptCount);
-//            System.out.println("Deliveries without receipt: " + deliveriesWithoutReceiptCount);
-//            System.out.println("wthout receipt array size" + withoutReceiptUrls.size());
-//            System.out.println("Not found in db count: " + notFoundInDb.size());
             return withoutReceiptUrls;
         }
     }
