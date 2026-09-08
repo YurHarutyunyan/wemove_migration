@@ -18,10 +18,10 @@ import org.bson.Document;
 
 public class Main {
     //initialize those values first
-    private final static String pathToReceiptsFolder = "/home/yuri/samurai/wemove/migration/osn-photos";
-    private final static String mongoConnectionURI = "mongodb://wemove:wemove@localhost:27117/wemove?authsource=admin";
-    private final static String authToken = "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbkB3ZW1vdmUubG9jYWwiLCJpZCI6IjY4NzUxNTUyZDIxY2ZhMDFjMWZjMDQyMSIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc4ODc3NDk5NCwiZXhwIjoxNzg4OTA0NTk0fQ.dh-bj96_w79e9MU8jfg2_xecbk7hH83yZMBXr4Qj_zW8Mju01UgVZUE8oO85sGfHNj3TRTTgKSNY77y_fHo7pw\n";
-    private final static String migrationLogPath = "/home/yuri/samurai/wemove/migration/migration_log.txt";
+    private final static String pathToReceiptsFolder = null;
+    private final static String mongoConnectionURI = null;
+    private final static String authToken = null;
+    private final static String migrationLogPath = null;
 
     public static void main(String[] args) throws IOException {
         String[] fileNames = getFileNames();
